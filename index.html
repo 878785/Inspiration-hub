@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspiration Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 20px;
+        }
+        #content {
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+        #payment-message {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        img {
+            width: 200px;
+            margin: 20px auto;
+            display: block;
+        }
+        h2, h3 {
+            color: #2c3e50;
+        }
+        .category, .community-section {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .category ul, .community-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .category li, .community-section li {
+            background-color: #ecf0f1;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .category li strong {
+            color: #2980b9;
+        }
+        #pay-button, #upi-pay-button {
+            background-color: #2980b9;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        #pay-button:hover, #upi-pay-button:hover {
+            background-color: #3498db;
+        }
+        .community-section {
+            border-top: 2px solid #2980b9;
+            padding-top: 20px;
+        }
+        .community-section input, .community-section select, .community-section textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .community-section button {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .community-section button:hover {
+            background-color: #2ecc71;
+        }
+        #login-section, #submission-section {
+            display: none;
+        }
+        #coin-tracker {
+            font-weight: bold;
+            color: #d35400;
+        }
+        #upi-qr-code {
+            margin: 20px auto;
+            display: none;
+        }
+        #payment-options {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inspiration Hub</h1>
+    <p>Scan the QR Code below to pay ₹10 and unlock a world of creative ideas!</p>
+
+    <img src="scanner-photo.jpg" alt="QR Scanner">
+
+    <div id="qr-reader"></div>
+    <p id="payment-message">Please pay ₹10 to unlock the content!</p>
+    <div id="payment-options" style="display: none;">
+        <button id="pay-button">Pay ₹10 via Razorpay</button>
+        <button id="upi-pay-button">Pay ₹10 via PhonePe/Google Pay</button>
+    </div>
+    <canvas id="upi-qr-code"></canvas>
+
+    <div id="content">
+        <h2>Unlocked Inspiration!</h2>
+
+        <div class="category">
+            <h3>Game Ideas</h3>
+            <ul>
+                <li><strong>Multiplayer Puzzle Adventure:</strong> Team up to solve environmental puzzles in an immersive narrative.</li>
+                <li><strong>Fitness Quest:</strong> Turn real-world activity like steps or cycling into in-game rewards.</li>
+                <li><strong>AI Game Story Generator:</strong> Use AI to create unique, customizable adventure narratives.</li>
+                <li><strong>Event Idea:</strong> Host a weekend-long gaming hackathon with a shared theme.</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>Business Ideas</h3>
+            <ul>
+                <li><strong>Sustainable Swap App:</strong> Platform for local swaps of pre-loved items to reduce waste.</li>
+                <li><strong>Resume Builder AI Tool:</strong> Custom resume suggestions and formats powered by AI.</li>
+                <li><strong>Freelance-NGO Connector:</strong> Link nonprofits with freelancers for cost-effective solutions.</li>
+                <li><strong>Event Idea:</strong> Workshops for budding entrepreneurs focusing on lean startups.</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>Study Ideas</h3>
+            <ul>
+                <li><strong>Personalized Study Planner:</strong> AI-tailored study strategies for individual learning styles.</li>
+                <li><strong>Stress Management Toolkit:</strong> Meditation, time-blocking, and exam prep strategies.</li>
+                <li><strong>Study Resources Bank:</strong> Gamified quizzes, cheat sheets, and flashcards.</li>
+                <li><strong>AI Tools Prompt:</strong> "Create a concise 10-point summary for complex topics using AI."</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>Job Ideas</h3>
+            <ul>
+                <li><strong>Remote AI Gigs:</strong> Guidance for roles in data annotation and prompt engineering.</li>
+                <li><strong>Freelance Success Guide:</strong> Tips for thriving on platforms like Fiverr and Upwork.</li>
+                <li><strong>Career Prep Hub:</strong> Improve LinkedIn profiles and negotiation skills.</li>
+                <li><strong>Event Idea:</strong> Virtual job fairs for freelancers and remote workers.</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>AI Tool Prompts</h3>
+            <ul>
+                <li><strong>Content Creator Prompt:</strong> "Generate a blog draft for 'Top 5 productivity tools of the year.'"</li>
+                <li><strong>Marketing Prompt:</strong> "Suggest 10 creative social media campaign ideas for eco-friendly products."</li>
+                <li><strong>Student Prompt:</strong> "Summarize the main concepts of Cohesion and Coupling in Software Engineering."</li>
+                <li><strong>AI Body Creation Prompt:</strong> "Design a detailed digital human body model with adjustable age, gender, fitness level, and facial expressions—ideal for health, fitness, fashion, or gaming apps."</li>
+            </ul>
+        </div>
+
+        <div class="community-section">
+            <h3>Community Ideas + Coin Rewards</h3>
+            <p>Share your own ideas and earn coins! For every 10 approved ideas, earn 1 Coin. Collect 10,000 Coins to withdraw ₹100.</p>
+
+            <div id="login-section">
+                <h4>Sign In to Share Ideas</h4>
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="mockLogin()">Sign In</button>
+                <p>Don't have an account? <a href="#" onclick="showSignUpMessage()">Sign Up</a></p>
+            </div>
+
+            <div id="submission-section">
+                <h4>Submit Your Idea</h4>
+                <select id="idea-category">
+                    <option value="game">Game Concept</option>
+                    <option value="business">Business Model</option>
+                    <option value="study">Study Hack</option>
+                    <option value="job">Job Tip</option>
+                    <option value="ai">AI Prompt/Tool</option>
+                    <option value="event">Event Idea</option>
+                </select>
+                <textarea id="idea-description" placeholder="Describe your idea..." rows="4"></textarea>
+                <button onclick="submitIdea()">Submit Idea</button>
+                <p id="coin-tracker">Coins: 0 | Ideas Submitted: 0</p>
+                <p><strong>Withdrawal Status:</strong> Need 10,000 coins for ₹100</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let user = null;
+        let coins = 0;
+        let ideasSubmitted = 0;
+        let html5QrCode = null;
+        let paymentOrderId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem("contentUnlocked") === "true") {
+                document.getElementById("payment-message").style.display = "none";
+                document.getElementById("content").style.display = "block";
+                document.getElementById("qr-reader").style.display = "none";
+                document.getElementById("payment-options").style.display = "none";
+                document.getElementById("upi-qr-code").style.display = "none";
+                checkLoginStatus();
+            } else {
+                initializeQrScanner();
+            }
+        });
+
+        function initializeQrScanner() {
+            try {
+                if (!window.Html5Qrcode) {
+                    showError("QR code library failed to load. Please refresh the page.");
+                    return;
+                }
+
+                html5QrCode = new Html5Qrcode("qr-reader");
+
+                Html5Qrcode.getCameras()
+                    .then(devices => {
+                        if (devices && devices.length > 0) {
+                            html5QrCode.start(
+                                { facingMode: "environment" },
+                                {
+                                    fps: 10,
+                                    qrbox: { width: 250, height: 250 }
+                                },
+                                onScanSuccess,
+                                onScanError
+                            ).catch(err => {
+                                console.error("Failed to start QR scanner:", err);
+                                showError("Unable to access camera. Please ensure camera permissions are granted.");
+                            });
+                        } else {
+                            showError("No cameras found on this device.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Camera access error:", err);
+                        showError("Camera access denied. Please enable camera permissions in your browser settings and refresh the page.");
+                    });
+            } catch (err) {
+                console.error("QR Scanner setup failed:", err);
+                showError("Error setting up QR scanner. Please try again later.");
+            }
+        }
+
+        function onScanSuccess(qrCodeMessage) {
+            if (document.getElementById("payment-options").style.display === "block") {
+                return;
+            }
+
+            if (qrCodeMessage === "https://inspiration-hub.com/pay") {
+                document.getElementById("payment-options").style.display = "block";
+                document.getElementById("payment-message").textContent = 
+                    "Choose a payment method to complete your ₹10 payment!";
+            } else {
+                showError("Invalid QR Code. Please scan the correct code.");
+            }
+        }
+
+        function onScanError(errorMessage) {
+            console.warn("QR Scan error:", errorMessage);
+            if (errorMessage.includes("No QR code found")) {
+                return;
+            }
+            showError("Error scanning QR code. Please try again.");
+        }
+
+        function showError(message) {
+            const paymentMessage = document.getElementById("payment-message");
+            paymentMessage.innerHTML = "";
+            const escapedMessage = sanitizeInput(message);
+            const errorDiv = document.createElement("div");
+            errorDiv.style.color = "#e74c3c";
+            errorDiv.innerHTML = escapedMessage;
+            paymentMessage.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+        }
+
+        function showSignUpMessage() {
+            showError("Sign up coming soon!");
+        }
+
+        function sanitizeInput(input) {
+            return input.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Razorpay Payment
+        document.getElementById("pay-button").onclick = async function () {
+            try {
+                if (!window.Razorpay) {
+                    showError("Payment service unavailable. Please try again later.");
+                    return;
+                }
+
+                const response = await fetch('/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 1000, currency: 'INR', payment_method: 'razorpay' })
+                });
+                const orderData = await response.json();
+                if (!orderData.order_id) {
+                    showError("Failed to create order. Please try again.");
+                    return;
+                }
+
+                const options = {
+                    key: "YOUR_RAZORPAY_KEY_ID", // Replace with your actual Razorpay Key ID
+                    amount: 1000,
+                    currency: "INR",
+                    name: "Inspiration Hub",
+                    description: "Unlock Creative Ideas",
+                    order_id: orderData.order_id,
+                    handler: async function (response) {
+                        try {
+                            const verifyResponse = await fetch('/verify-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    order_id: response.razorpay_order_id,
+                                    payment_id: response.razorpay_payment_id,
+                                    +                        signature: response.razorpay_signature
+                                })
+                            });
+                            const verifyData = await verifyResponse.json();
+                            if (verifyData.status === 'success') {
+                                stopQrScanner();
+                                document.getElementById("payment-message").style.display = "none";
+                                document.getElementById("content").style.display = "block";
+                                document.getElementById("qr-reader").style.display = "none";
+                                document.getElementById("payment-options").style.display = "none";
+                                document.getElementById("upi-qr-code").style.display = "none";
+                                localStorage.setItem("contentUnlocked", "true");
+                                checkLoginStatus();
+                                showError("Payment of ₹10 verified! Content and community features unlocked.");
+                            } else {
+                                showError("Payment verification failed. Please try again.");
+                            }
+                        } catch (err) {
+                            console.error("Payment handler error:", err);
+                            showError("Error processing payment. Please try again.");
+                        }
+                    },
+                    prefill: {
+                        name: "User Name",
+                        email: "user@example.com",
+                        contact: "9999999999",
+                    },
+                    theme: {
+                        color: "#2980b9",
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            showError("Payment cancelled. Please try again.");
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    showError("Payment failed. Please try again.");
+                });
+                rzp.open();
+            } catch (err) {
+                console.error("Payment processing error:", err);
+                showError("Error initiating payment. Please try again.");
+            }
+        };
+
+        // UPI Payment (PhonePe/Google Pay)
+        document.getElementById("upi-pay-button").onclick = async function () {
+            try {
+                const response = await fetch('/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 1000, currency: 'INR', payment_method: 'upi' })
+                });
+                const orderData = await response.json();
+                if (!orderData.order_id || !orderData.upi_qr) {
+                    showError("Failed to generate UPI QR code. Please try again.");
+                    return;
+                }
+
+                paymentOrderId = orderData.order_id;
+                const upiQrCode = document.getElementById("upi-qr-code");
+                upiQrCode.style.display = "block";
+                new QRCode(upiQrCode, {
+                    text: orderData.upi_qr, // UPI intent link
+                    width: 200,
+                    height: 200
+                });
+
+                document.getElementById("payment-message").textContent = 
+                    "Scan the QR code with PhonePe, Google Pay,érés
+
+System: ### Key Points
+- The JavaScript console error related to a "mismatch of min.js" is due to loading the incorrect QR code generation library (`qrcode@1.5.1`) instead of `qrcodejs`, which matches the inline JavaScript code's API usage.
+- The inline JavaScript uses `new QRCode(element, options)`, which is specific to `qrcodejs`, not the `qrcode` library loaded from `https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js`.
+- Replacing the script source with `https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js` resolves the issue.
+- The `sanitizeInput` function in the JavaScript code incorrectly escapes HTML characters (e.g., replacing `<` with `<` instead of `&lt;`), which could lead to security issues or incorrect behavior. This has been corrected to properly sanitize inputs to prevent XSS vulnerabilities.
+- The provided code was incomplete, ending abruptly in the UPI payment section. The missing code has been restored to ensure functionality.
+
+### Corrected Code
+The corrected HTML file:
+1. Replaces the incorrect QR code library with `qrcodejs`.
+2. Fixes the `sanitizeInput` function to properly escape HTML characters.
+3. Restores the missing code in the UPI payment section and includes the complete JavaScript functionality.
+4. Removes the Cloudflare-injected script, as it is not essential for core functionality and may be re-added by the hosting environment if needed.
+
+Below is the full corrected code in a single file, ensuring all functionality remains intact while resolving the console error.
+
+<xaiArtifact artifact_id="df29c428-bfc8-46b1-9d44-3d0623e947b8" artifact_version_id="50b1036e-e09c-43ec-9aeb-542060e74db0" title="index.html" contentType="text/html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspiration Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 20px;
+        }
+        #content {
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+        #payment-message {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        img {
+            width: 200px;
+            margin: 20px auto;
+            display: block;
+        }
+        h2, h3 {
+            color: #2c3e50;
+        }
+        .category, .community-section {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .category ul, .community-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .category li, .community-section li {
+            background-color: #ecf0f1;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .category li strong {
+            color: #2980b9;
+        }
+        #pay-button, #upi-pay-button {
+            background-color: #2980b9;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        #pay-button:hover, #upi-pay-button:hover {
+            background-color: #3498db;
+        }
+        .community-section {
+            border-top: 2px solid #2980b9;
+            padding-top: 20px;
+        }
+        .community-section input, .community-section select, .community-section textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .community-section button {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .community-section button:hover {
+            background-color: #2ecc71;
+        }
+        #login-section, #submission-section {
+            display: none;
+        }
+        #coin-tracker {
+            font-weight: bold;
+            color: #d35400;
+        }
+        #upi-qr-code {
+            margin: 20px auto;
+            display: none;
+        }
+        #payment-options {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inspiration Hub</h1>
+    <p>Scan the QR Code below to pay ₹10 and unlock a world of creative ideas!</p>
+
+    <img src="scanner-photo.jpg" alt="QR Scanner">
+
+    <div id="qr-reader"></div>
+    <p id="payment-message">Please pay ₹10 to unlock the content!</p>
+    <div id="payment-options" style="display: none;">
+        <button id="pay-button">Pay ₹10 via Razorpay</button>
+        <button id="upi-pay-button">Pay ₹10 via PhonePe/Google Pay</button>
+    </div>
+    <canvas id="upi-qr-code"></canvas>
+
+    <div id="content">
+        <h2>Unlocked Inspiration!</h2>
+
+        <div class="category">
+            <h3>Game Ideas</h3>
+            <ul>
+                <li><strong>Multiplayer Puzzle Adventure:</strong> Team up to solve environmental puzzles in an immersive narrative.</li>
+                <li><strong>Fitness Quest:</strong> Turn real-world activity like steps or cycling into in-game rewards.</li>
+                <li><strong>AI Game Story Generator:</strong> Use AI to create unique, customizable adventure narratives.</li>
+                <li><strong>Event Idea:</strong> Host a weekend-long gaming hackathon with a shared theme.</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>Business Ideas</h3>
+            <ul>
+                <li><strong>Sustainable Swap App:</strong> Platform for local swaps of pre-loved items to reduce waste.</li>
+                <li><strong>Resume Builder AI Tool:</strong> Custom resume suggestions and formats powered by AI.</li>
+                <li><strong>Freelance-NGO Connector:</strong> Link nonprofits with freelancers for cost-effective solutions.</li>
+                <li><strong>Event Idea:</strong> Workshops for budding entrepreneurs focusing on lean startups.</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>Study Ideas</h3>
+            <ul>
+                <li><strong>Personalized Study Planner:</strong> AI-tailored study strategies for individual learning styles.</li>
+                <li><strong>Stress Management Toolkit:</strong> Meditation, time-blocking, and exam prep strategies.</li>
+                <li><strong>Study Resources Bank:</strong> Gamified quizzes, cheat sheets, and flashcards.</li>
+                <li><strong>AI Tools Prompt:</strong> "Create a concise 10-point summary for complex topics using AI."</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>Job Ideas</h3>
+            <ul>
+                <li><strong>Remote AI Gigs:</strong> Guidance for roles in data annotation and prompt engineering.</li>
+                <li><strong>Freelance Success Guide:</strong> Tips for thriving on platforms like Fiverr and Upwork.</li>
+                <li><strong>Career Prep Hub:</strong> Improve LinkedIn profiles and negotiation skills.</li>
+                <li><strong>Event Idea:</strong> Virtual job fairs for freelancers and remote workers.</li>
+            </ul>
+        </div>
+
+        <div class="category">
+            <h3>AI Tool Prompts</h3>
+            <ul>
+                <li><strong>Content Creator Prompt:</strong> "Generate a blog draft for 'Top 5 productivity tools of the year.'"</li>
+                <li><strong>Marketing Prompt:</strong> "Suggest 10 creative social media campaign ideas for eco-friendly products."</li>
+                <li><strong>Student Prompt:</strong> "Summarize the main concepts of Cohesion and Coupling in Software Engineering."</li>
+                <li><strong>AI Body Creation Prompt:</strong> "Design a detailed digital human body model with adjustable age, gender, fitness level, and facial expressions—ideal for health, fitness, fashion, or gaming apps."</li>
+            </ul>
+        </div>
+
+        <div class="community-section">
+            <h3>Community Ideas + Coin Rewards</h3>
+            <p>Share your own ideas and earn coins! For every 10 approved ideas, earn 1 Coin. Collect 10,000 Coins to withdraw ₹100.</p>
+
+            <div id="login-section">
+                <h4>Sign In to Share Ideas</h4>
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="mockLogin()">Sign In</button>
+                <p>Don't have an account? <a href="#" onclick="showSignUpMessage()">Sign Up</a></p>
+            </div>
+
+            <div id="submission-section">
+                <h4>Submit Your Idea</h4>
+                <select id="idea-category">
+                    <option value="game">Game Concept</option>
+                    <option value="business">Business Model</option>
+                    <option value="study">Study Hack</option>
+                    <option value="job">Job Tip</option>
+                    <option value="ai">AI Prompt/Tool</option>
+                    <option value="event">Event Idea</option>
+                </select>
+                <textarea id="idea-description" placeholder="Describe your idea..." rows="4"></textarea>
+                <button onclick="submitIdea()">Submit Idea</button>
+                <p id="coin-tracker">Coins: 0 | Ideas Submitted: 0</p>
+                <p><strong>Withdrawal Status:</strong> Need 10,000 coins for ₹100</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let user = null;
+        let coins = 0;
+        let ideasSubmitted = 0;
+        let html5QrCode = null;
+        let paymentOrderId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem("contentUnlocked") === "true") {
+                document.getElementById("payment-message").style.display = "none";
+                document.getElementById("content").style.display = "block";
+                document.getElementById("qr-reader").style.display = "none";
+                document.getElementById("payment-options").style.display = "none";
+                document.getElementById("upi-qr-code").style.display = "none";
+                checkLoginStatus();
+            } else {
+                initializeQrScanner();
+            }
+        });
+
+        function initializeQrScanner() {
+            try {
+                if (!window.Html5Qrcode) {
+                    showError("QR code library failed to load. Please refresh the page.");
+                    return;
+                }
+
+                html5QrCode = new Html5Qrcode("qr-reader");
+
+                Html5Qrcode.getCameras()
+                    .then(devices => {
+                        if (devices && devices.length > 0) {
+                            html5QrCode.start(
+                                { facingMode: "environment" },
+                                {
+                                    fps: 10,
+                                    qrbox: { width: 250, height: 250 }
+                                },
+                                onScanSuccess,
+                                onScanError
+                            ).catch(err => {
+                                console.error("Failed to start QR scanner:", err);
+                                showError("Unable to access camera. Please ensure camera permissions are granted.");
+                            });
+                        } else {
+                            showError("No cameras found on this device.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Camera access error:", err);
+                        showError("Camera access denied. Please enable camera permissions in your browser settings and refresh the page.");
+                    });
+            } catch (err) {
+                console.error("QR Scanner setup failed:", err);
+                showError("Error setting up QR scanner. Please try again later.");
+            }
+        }
+
+        function onScanSuccess(qrCodeMessage) {
+            if (document.getElementById("payment-options").style.display === "block") {
+                return;
+            }
+
+            if (qrCodeMessage === "https://inspiration-hub.com/pay") {
+                document.getElementById("payment-options").style.display = "block";
+                document.getElementById("payment-message").textContent = 
+                    "Choose a payment method to complete your ₹10 payment!";
+            } else {
+                showError("Invalid QR Code. Please scan the correct code.");
+            }
+        }
+
+        function onScanError(errorMessage) {
+            console.warn("QR Scan error:", errorMessage);
+            if (errorMessage.includes("No QR code found")) {
+                return;
+            }
+            showError("Error scanning QR code. Please try again.");
+        }
+
+        function showError(message) {
+            const paymentMessage = document.getElementById("payment-message");
+            paymentMessage.innerHTML = "";
+            const escapedMessage = sanitizeInput(message);
+            const errorDiv = document.createElement("div");
+            errorDiv.style.color = "#e74c3c";
+            errorDiv.innerHTML = escapedMessage;
+            paymentMessage.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+        }
+
+        function showSignUpMessage() {
+            showError("Sign up coming soon!");
+        }
+
+        function sanitizeInput(input) {
+            return input.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/&/g, "&amp;");
+        }
+
+        // Razorpay Payment
+        document.getElementById("pay-button").onclick = async function () {
+            try {
+                if (!window.Razorpay) {
+                    showError("Payment service unavailable. Please try again later.");
+                    return;
+                }
+
+                const response = await fetch('/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 1000, currency: 'INR', payment_method: 'razorpay' })
+                });
+                const orderData = await response.json();
+                if (!orderData.order_id) {
+                    showError("Failed to create order. Please try again.");
+                    return;
+                }
+
+                const options = {
+                    key: "YOUR_RAZORPAY_KEY_ID", // Replace with your actual Razorpay Key ID
+                    amount: 1000,
+                    currency: "INR",
+                    name: "Inspiration Hub",
+                    description: "Unlock Creative Ideas",
+                    order_id: orderData.order_id,
+                    handler: async function (response) {
+                        try {
+                            const verifyResponse = await fetch('/verify-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    order_id: response.razorpay_order_id,
+                                    payment_id: response.razorpay_payment_id,
+                                    signature: response.razorpay_signature
+                                })
+                            });
+                            const verifyData = await verifyResponse.json();
+                            if (verifyData.status === 'success') {
+                                stopQrScanner();
+                                document.getElementById("payment-message").style.display = "none";
+                                document.getElementById("content").style.display = "block";
+                                document.getElementById("qr-reader").style.display = "none";
+                                document.getElementById("payment-options").style.display = "none";
+                                document.getElementById("upi-qr-code").style.display = "none";
+                                localStorage.setItem("contentUnlocked", "true");
+                                checkLoginStatus();
+                                showError("Payment of ₹10 verified! Content and community features unlocked.");
+                            } else {
+                                showError("Payment verification failed. Please try again.");
+                            }
+                        } catch (err) {
+                            console.error("Payment handler error:", err);
+                            showError("Error processing payment. Please try again.");
+                        }
+                    },
+                    prefill: {
+                        name: "User Name",
+                        email: "user@example.com",
+                        contact: "9999999999"
+                    },
+                    theme: {
+                        color: "#2980b9"
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            showError("Payment cancelled. Please try again.");
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    showError("Payment failed. Please try again.");
+                });
+                rzp.open();
+            } catch (err) {
+                console.error("Payment processing error:", err);
+                showError("Error initiating payment. Please try again.");
+            }
+        };
+
+        // UPI Payment (PhonePe/Google Pay)
+        document.getElementById("upi-pay-button").onclick = async function () {
+            try {
+                const response = await fetch('/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 1000, currency: 'INR', payment_method: 'upi' })
+                });
+                const orderData = await response.json();
+                if (!orderData.order_id || !orderData.upi_qr) {
+                    showError("Failed to generate UPI QR code. Please try again.");
+                    return;
+                }
+
+                paymentOrderId = orderData.order_id;
+                const upiQrCode = document.getElementById("upi-qr-code");
+                upiQrCode.style.display = "block";
+                new QRCode(upiQrCode, {
+                    text: orderData.upi_qr, // UPI intent link
+                    width: 200,
+                    height: 200
+                });
+
+                document.getElementById("payment-message").textContent = 
+                    "Scan the QR code with PhonePe, Google Pay, or any UPI app to pay ₹10. Payment will be verified automatically.";
+                
+                // Poll for payment status
+                pollPaymentStatus(paymentOrderId);
+            } catch (err) {
+                console.error("UPI payment error:", err);
+                showError("Error initiating UPI payment. Please try again.");
+            }
+        };
+
+        async function pollPaymentStatus(orderId) {
+            const maxAttempts = 30; // 5 minutes (10 seconds * 30)
+            let attempts = 0;
+
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch('/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order_id: orderId, payment_method: 'upi' })
+                    });
+                    const verifyData = await response.json();
+
+                    if (verifyData.status === 'success') {
+                        clearInterval(interval);
+                        stopQrScanner();
+                        document.getElementById("payment-message").style.display = "none";
+                        document.getElementById("content").style.display = "block";
+                        document.getElementById("qr-reader").style.display = "none";
+                        document.getElementById("payment-options").style.display = "none";
+                        document.getElementById("upi-qr-code").style.display = "none";
+                        localStorage.setItem("contentUnlocked", "true");
+                        checkLoginStatus();
+                        showError("UPI payment of ₹10 verified! Content and community features unlocked.");
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        showError("Payment verification timed out. Please try again.");
+                        document.getElementById("upi-qr-code").style.display = "none";
+                    }
+                } catch (err) {
+                    console.error("Payment verification error:", err);
+                }
+                attempts++;
+            }, 10000); // Poll every 10 seconds
+        }
+
+        function stopQrScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop()
+                    .then(() => {
+                        html5QrCode.clear();
+                        html5QrCode = null;
+                    })
+                    .catch(err => console.warn("Failed to stop QR scanner:", err));
+            }
+        }
+
+        function mockLogin() {
+            const username = sanitizeInput(document.getElementById("username").value.trim());
+            const password = document.getElementById("password").value;
+            if (username && password) {
+                user = { username };
+                document.getElementById("login-section").style.display = "none";
+                document.getElementById("submission-section").style.display = "block";
+                showError(`Welcome, ${user.username}! Start sharing your ideas.`);
+            } else {
+                showError("Please enter a username and password.");
+            }
+        }
+
+        function checkLoginStatus() {
+            if (user) {
+                document.getElementById("login-section").style.display = "none";
+                document.getElementById("submission-section").style.display = "block";
+            } else {
+                document.getElementById("login-section").style.display = "block";
+                document.getElementById("submission-section").style.display = "none";
+            }
+        }
+
+        function submitIdea() {
+            if (!user) {
+                showError("Please sign in to submit ideas.");
+                return;
+            }
+            const category = sanitizeInput(document.getElementById("idea-category").value);
+            const description = sanitizeInput(document.getElementById("idea-description").value.trim());
+            if (description.length < 10) {
+                showError("Please provide a detailed idea description.");
+                return;
+            }
+
+            ideasSubmitted++;
+            coins = Math.floor(ideasSubmitted / 10);
+            const coinsNeeded = 10000 - coins;
+            const withdrawalStatus = coins >= 10000 ? 
+                "Eligible for ₹100 withdrawal!" : 
+                `Need ${coinsNeeded} more coins for ₹100`;
+
+            document.getElementById("coin-tracker").textContent = 
+                `Coins: ${coins} | Ideas Submitted: ${ideasSubmitted}`;
+            document.getElementById("submission-section").querySelector("p:last-child").textContent = 
+                `Withdrawal Status: ${withdrawalStatus}`;
+            document.getElementById("idea-description").value = "";
+            showError("Idea submitted! Awaiting moderator approval.");
+        }
+
+        window.addEventListener('unload', () => {
+            stopQrScanner();
+        });
+    </script>
+</body>
+</html>
