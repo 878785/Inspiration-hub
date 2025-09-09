@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Event Feedback - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg,#f0f4f8,#dbeafe); }
+    .dark body { background: linear-gradient(135deg,#1a202c,#2d3748); color:#e2e8f0; }
+    .star { font-size: 1.5rem; cursor: pointer; color: #d1d5db; }
+    .star.selected { color: #facc15; }
+    .feedback-card { border-radius: 10px; padding: 16px; transition: transform 0.2s; }
+    .feedback-card:hover { transform: translateY(-4px); }
+    .notification { position: fixed; top: 20px; right: 20px; padding: 10px 18px; border-radius: 8px; color: #fff; z-index: 1000; animation: fadein 0.5s; }
+    @keyframes fadein { from{opacity:0; transform:translateX(50px)} to{opacity:1; transform:translateX(0)} }
+    .sidebar { transition: transform 0.3s ease; }
+    .sidebar-hidden { transform: translateX(-100%); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 z-40 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl sm:text-2xl font-bold">Inspiration Hub — Event Feedback</h1>
+      <div class="flex items-center space-x-2">
+        <button id="menu-toggle" class="sm:hidden p-2 bg-blue-500 rounded hover:bg-blue-700">☰</button>
+        <div class="hidden sm:flex space-x-2">
+          <button id="theme-toggle" class="px-3 py-2 bg-white text-gray-800 rounded">Dark Mode</button>
+          <a href="INSPIRATION.html" class="px-3 py-2 bg-blue-500 rounded">Home</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar (Mobile) -->
+  <nav id="sidebar" class="sidebar sidebar-hidden sm:hidden fixed top-0 left-0 w-3/4 h-full bg-white dark:bg-gray-800 p-4 z-50">
+    <button id="close-sidebar" class="p-2 mb-4 bg-red-500 text-white rounded">Close</button>
+    <div class="space-y-2">
+      <button id="mobile-theme-toggle" class="w-full px-3 py-2 bg-gray-200 text-gray-800 rounded">Dark Mode</button>
+      <a href="INSPIRATION.html" class="block px-3 py-2 bg-blue-500 text-white rounded">Home</a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="container mx-auto p-4">
+    <!-- Feedback Form -->
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Leave Feedback</h2>
+      <input id="name" type="text" placeholder="Your Name" class="w-full p-3 mb-3 border rounded dark:bg-gray-700 dark:border-gray-600">
+      <textarea id="comment" rows="3" placeholder="Your Feedback" class="w-full p-3 mb-3 border rounded dark:bg-gray-700 dark:border-gray-600"></textarea>
+      <div class="flex items-center space-x-2 mb-3">
+        <span class="font-semibold">Rating:</span>
+        <div id="stars" class="flex space-x-1">
+          <span class="star" data-value="1">★</span>
+          <span class="star" data-value="2">★</span>
+          <span class="star" data-value="3">★</span>
+          <span class="star" data-value="4">★</span>
+          <span class="star" data-value="5">★</span>
+        </div>
+      </div>
+      <button onclick="addFeedback()" class="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600">Submit</button>
+    </section>
+
+    <!-- Feedback List -->
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold mb-4">Feedback Received</h2>
+      <div id="feedback-list" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+  </main>
+
+  <script>
+    let feedbacks = JSON.parse(localStorage.getItem("event-feedbacks") || "[]");
+    let selectedRating = 0;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadFeedbacks();
+      document.querySelectorAll(".star").forEach(star => {
+        star.addEventListener("click", () => {
+          selectedRating = star.dataset.value;
+          updateStars();
+        });
+      });
+      document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+      document.getElementById("mobile-theme-toggle").addEventListener("click", toggleTheme);
+      document.getElementById("menu-toggle").addEventListener("click", toggleSidebar);
+      document.getElementById("close-sidebar").addEventListener("click", toggleSidebar);
+    });
+
+    function updateStars() {
+      document.querySelectorAll(".star").forEach(star => {
+        star.classList.toggle("selected", star.dataset.value <= selectedRating);
+      });
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const btns = [document.getElementById("theme-toggle"), document.getElementById("mobile-theme-toggle")];
+      btns.forEach(btn => { if (btn) btn.textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode"; });
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("sidebar-hidden");
+    }
+
+    function addFeedback() {
+      const name = document.getElementById("name").value.trim() || "Anonymous";
+      const comment = document.getElementById("comment").value.trim();
+      if (!comment || selectedRating == 0) {
+        showNotification("Please provide feedback and rating", "bg-red-500");
+        return;
+      }
+      const fb = { id: Date.now(), name, comment, rating: selectedRating, date: new Date().toLocaleString() };
+      feedbacks.push(fb);
+      localStorage.setItem("event-feedbacks", JSON.stringify(feedbacks));
+      loadFeedbacks();
+      document.getElementById("name").value = "";
+      document.getElementById("comment").value = "";
+      selectedRating = 0;
+      updateStars();
+      showNotification("Feedback submitted!", "bg-green-500");
+    }
+
+    function loadFeedbacks() {
+      const container = document.getElementById("feedback-list");
+      container.innerHTML = "";
+      feedbacks.forEach(fb => {
+        const div = document.createElement("div");
+        div.className = "feedback-card bg-gray-100 dark:bg-gray-700 shadow";
+        div.innerHTML = `
+          <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">${fb.name}</h3>
+          <p class="text-yellow-500">${"★".repeat(fb.rating)}${"☆".repeat(5 - fb.rating)}</p>
+          <p class="text-gray-600 dark:text-gray-300">${fb.comment}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Date: ${fb.date}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function showNotification(msg, cls) {
+      const div = document.createElement("div");
+      div.className = `notification ${cls}`;
+      div.textContent = msg;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 3000);
+    }
+  </script>
+</body>
+</html>

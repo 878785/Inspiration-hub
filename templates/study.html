@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Study Schedule Planner - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .schedule-item { 
+      background: #e2e8f0; 
+      padding: 10px; 
+      border-radius: 8px; 
+      margin-bottom: 8px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+    }
+    .dark .schedule-item { background: #4a5568; color: #f9fafb; }
+    .btn { padding: 5px 10px; border-radius: 6px; font-size: 14px; }
+    .btn-delete { background: #dc2626; color: white; }
+    .btn-delete:hover { background: #b91c1c; }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-edit:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 shadow-lg">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Inspiration Hub - Study Planner</h1>
+      <div class="flex space-x-2">
+        <button id="theme-toggle" class="px-3 py-1 bg-gray-200 text-gray-800 rounded">Dark Mode</button>
+        <a href="INSPIRATION.html" class="px-3 py-1 bg-blue-500 rounded">Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto p-6">
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Study Schedule Planner</h2>
+
+      <!-- Input Form -->
+      <div class="grid sm:grid-cols-3 gap-4 mb-4">
+        <input id="subject" type="text" placeholder="Subject / Topic"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+        <input id="date" type="date"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+        <input id="time" type="time"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+      </div>
+      <button onclick="addSchedule()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">+ Add Schedule</button>
+
+      <!-- Schedule List -->
+      <div id="schedule-list" class="mt-6"></div>
+    </section>
+  </main>
+
+  <script>
+    let schedules = JSON.parse(localStorage.getItem("study-schedule") || "[]");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSchedules();
+      document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      document.getElementById("theme-toggle").textContent = 
+        document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+    }
+
+    function addSchedule() {
+      const subject = document.getElementById("subject").value.trim();
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+
+      if (!subject || !date || !time) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      schedules.push({ id: Date.now(), subject, date, time });
+      saveSchedules();
+      loadSchedules();
+      document.getElementById("subject").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("time").value = "";
+    }
+
+    function loadSchedules() {
+      const list = document.getElementById("schedule-list");
+      list.innerHTML = "";
+      schedules.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "schedule-item";
+        div.innerHTML = `
+          <span><strong>${item.subject}</strong> - ${item.date} at ${item.time}</span>
+          <div>
+            <button class="btn btn-edit" onclick="editSchedule(${item.id})">Edit</button>
+            <button class="btn btn-delete" onclick="deleteSchedule(${item.id})">Delete</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteSchedule(id) {
+      schedules = schedules.filter(s => s.id !== id);
+      saveSchedules();
+      loadSchedules();
+    }
+
+    function editSchedule(id) {
+      const item = schedules.find(s => s.id === id);
+      if (!item) return;
+      const newSubject = prompt("Edit subject:", item.subject) || item.subject;
+      const newDate = prompt("Edit date (YYYY-MM-DD):", item.date) || item.date;
+      const newTime = prompt("Edit time (HH:MM):", item.time) || item.time;
+
+      item.subject = newSubject.trim();
+      item.date = newDate;
+      item.time = newTime;
+      saveSchedules();
+      loadSchedules();
+    }
+
+    function saveSchedules() {
+      localStorage.setItem("study-schedule", JSON.stringify(schedules));
+    }
+  </script>
+</body>
+</html>

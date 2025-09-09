@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code Snippet Generator - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .snippet {
+      background: #e2e8f0;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .dark .snippet { background: #4a5568; color: #f9fafb; }
+    pre {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    .btn { padding: 5px 10px; border-radius: 6px; font-size: 14px; margin-left: 5px; }
+    .btn-delete { background: #dc2626; color: white; }
+    .btn-delete:hover { background: #b91c1c; }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-edit:hover { background: #1d4ed8; }
+    .btn-copy { background: #16a34a; color: white; }
+    .btn-copy:hover { background: #15803d; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 shadow-lg">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Inspiration Hub - Code Snippets</h1>
+      <div class="flex space-x-2">
+        <button id="theme-toggle" class="px-3 py-1 bg-gray-200 text-gray-800 rounded">Dark Mode</button>
+        <a href="INSPIRATION.html" class="px-3 py-1 bg-blue-500 rounded">Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto p-6">
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Code Snippet Generator</h2>
+
+      <!-- Input Form -->
+      <div class="grid sm:grid-cols-2 gap-4 mb-4">
+        <input id="title" type="text" placeholder="Snippet Title"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+        <input id="language" type="text" placeholder="Language (e.g., JavaScript, Python)"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+      </div>
+      <textarea id="code" placeholder="Write your code here..." rows="6"
+        class="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none mb-3"></textarea>
+      <button onclick="addSnippet()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">+ Save Snippet</button>
+
+      <!-- Snippets List -->
+      <div id="snippet-list" class="mt-6"></div>
+    </section>
+  </main>
+
+  <script>
+    let snippets = JSON.parse(localStorage.getItem("snippets") || "[]");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSnippets();
+      document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      document.getElementById("theme-toggle").textContent =
+        document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+    }
+
+    function addSnippet() {
+      const title = document.getElementById("title").value.trim();
+      const language = document.getElementById("language").value.trim();
+      const code = document.getElementById("code").value.trim();
+
+      if (!title || !code) {
+        alert("Please enter at least title and code.");
+        return;
+      }
+
+      snippets.push({ id: Date.now(), title, language, code });
+      saveSnippets();
+      loadSnippets();
+
+      document.getElementById("title").value = "";
+      document.getElementById("language").value = "";
+      document.getElementById("code").value = "";
+    }
+
+    function loadSnippets() {
+      const list = document.getElementById("snippet-list");
+      list.innerHTML = "";
+      snippets.forEach(sn => {
+        const div = document.createElement("div");
+        div.className = "snippet";
+        div.innerHTML = `
+          <h3 class="font-semibold">${sn.title} <span class="text-sm text-gray-600 dark:text-gray-300">(${sn.language || "Unknown"})</span></h3>
+          <pre><code>${sanitize(sn.code)}</code></pre>
+          <div class="mt-2">
+            <button class="btn btn-copy" onclick="copyCode('${sn.id}')">Copy</button>
+            <button class="btn btn-edit" onclick="editSnippet(${sn.id})">Edit</button>
+            <button class="btn btn-delete" onclick="deleteSnippet(${sn.id})">Delete</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteSnippet(id) {
+      snippets = snippets.filter(sn => sn.id !== id);
+      saveSnippets();
+      loadSnippets();
+    }
+
+    function editSnippet(id) {
+      const sn = snippets.find(s => s.id === id);
+      if (!sn) return;
+
+      const newTitle = prompt("Edit title:", sn.title) || sn.title;
+      const newLang = prompt("Edit language:", sn.language) || sn.language;
+      const newCode = prompt("Edit code:", sn.code) || sn.code;
+
+      sn.title = newTitle.trim();
+      sn.language = newLang.trim();
+      sn.code = newCode.trim();
+
+      saveSnippets();
+      loadSnippets();
+    }
+
+    function copyCode(id) {
+      const sn = snippets.find(s => s.id === id);
+      if (!sn) return;
+      navigator.clipboard.writeText(sn.code).then(() => {
+        alert("Code copied to clipboard!");
+      });
+    }
+
+    function saveSnippets() {
+      localStorage.setItem("snippets", JSON.stringify(snippets));
+    }
+
+    function sanitize(input) {
+      return String(input).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[s]));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Collaboration Whiteboard - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --bg:#f6f9fc; --card:#ffffff; --muted:#6b7280;
+    }
+    body{font-family:Inter,system-ui,-apple-system; background:linear-gradient(180deg,#eef2ff,#eefcf8); min-height:100vh; margin:0}
+    header{background:linear-gradient(90deg,#6366f1,#8b5cf6); color:white}
+    .toolbar { gap:8px; display:flex; flex-wrap:wrap; align-items:center }
+    .tool-btn{background:rgba(255,255,255,0.95); border-radius:8px; padding:8px 10px; display:inline-flex; align-items:center; gap:8px; border:0; box-shadow:0 4px 10px rgba(2,6,23,0.06); cursor:pointer}
+    .tool-btn:hover{transform:translateY(-2px)}
+    .color-swatch{width:28px;height:28px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);cursor:pointer}
+    .sidebar { width:320px; max-width:38%; min-width:220px }
+    .main { flex:1; display:flex; flex-direction:column; gap:12px }
+    .canvas-wrap{background:var(--card); border-radius:10px; padding:12px; box-shadow: 0 6px 20px rgba(11,15,27,0.06)}
+    .sticky { background: #fff3bf; padding:10px; border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,0.08); max-width:260px }
+    .sticky textarea{width:100%; border:0; resize:none; background:transparent; outline:none}
+    @media (max-width:900px){ .layout{flex-direction:column} .sidebar{max-width:100%; width:100%}}
+    .small{padding:6px 8px; font-size:14px}
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="p-4">
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h1 class="text-2xl font-bold">Inspiration Hub — Whiteboard</h1>
+        <span class="text-white/80 text-sm">Sketch • Notes • Export</span>
+      </div>
+      <a href="INSPIRATION.html" class="px-3 py-2 bg-white/20 rounded text-white hover:opacity-90">Home</a>
+    </div>
+  </header>
+
+  <main class="container mx-auto p-4 layout flex gap-4">
+    <!-- Sidebar tools -->
+    <aside class="sidebar">
+      <div class="card p-4 bg-white rounded-lg shadow">
+        <h3 class="font-semibold mb-2">Tools</h3>
+        <div class="toolbar">
+          <button id="penBtn" class="tool-btn" title="Pen">✏️ Pen</button>
+          <button id="eraserBtn" class="tool-btn" title="Eraser">🧽 Eraser</button>
+          <button id="lineBtn" class="tool-btn" title="Line">📏 Line</button>
+          <button id="rectBtn" class="tool-btn" title="Rectangle">▭ Rect</button>
+          <button id="circleBtn" class="tool-btn" title="Circle">◯ Circle</button>
+        </div>
+
+        <div class="mt-4">
+          <h4 class="text-sm text-gray-600 mb-2">Brush</h4>
+          <input id="sizeRange" type="range" min="1" max="40" value="4" class="w-full" />
+        </div>
+
+        <div class="mt-4">
+          <h4 class="text-sm text-gray-600 mb-2">Colors</h4>
+          <div class="flex flex-wrap gap-2">
+            <div class="color-swatch" data-color="#111827" style="background:#111827"></div>
+            <div class="color-swatch" data-color="#0ea5a4" style="background:#0ea5a4"></div>
+            <div class="color-swatch" data-color="#6366f1" style="background:#6366f1"></div>
+            <div class="color-swatch" data-color="#ef4444" style="background:#ef4444"></div>
+            <div class="color-swatch" data-color="#f59e0b" style="background:#f59e0b"></div>
+            <div class="color-swatch" data-color="#10b981" style="background:#10b981"></div>
+            <input id="colorPicker" type="color" class="h-8 w-12 p-0 border-0 ml-1" />
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <h4 class="text-sm text-gray-600 mb-2">Actions</h4>
+          <div class="flex flex-wrap gap-2">
+            <button id="undoBtn" class="tool-btn small">↶ Undo</button>
+            <button id="redoBtn" class="tool-btn small">↷ Redo</button>
+            <button id="clearBtn" class="tool-btn small">🗑 Clear</button>
+            <button id="exportBtn" class="tool-btn small">⬇ Export PNG</button>
+            <button id="saveBtn" class="tool-btn small">💾 Save</button>
+            <button id="loadBtn" class="tool-btn small">📂 Load</button>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <h4 class="text-sm text-gray-600 mb-2">Sticky Notes</h4>
+          <div class="flex gap-2">
+            <button id="addSticky" class="tool-btn small">+ Note</button>
+            <button id="clearNotes" class="tool-btn small">Clear Notes</button>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mt-3">Tip: Use two fingers (touch) to draw on mobile.</p>
+      </div>
+    </aside>
+
+    <!-- Main canvas area -->
+    <section class="main">
+      <div class="canvas-wrap p-2">
+        <!-- toolbar row for quick actions -->
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">Active tool:</span>
+            <strong id="activeTool">Pen</strong>
+            <span class="text-sm text-gray-500 ml-3">Color:</span>
+            <div id="activeColor" class="color-swatch" style="width:18px;height:18px;border-radius:4px;background:#111827"></div>
+            <span class="text-sm text-gray-500 ml-3">Size:</span>
+            <span id="activeSize" class="text-sm font-medium">4</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="zoomOut" class="tool-btn small">➖</button>
+            <button id="zoomIn" class="tool-btn small">➕</button>
+            <button id="fitBtn" class="tool-btn small">Fit</button>
+          </div>
+        </div>
+
+        <!-- canvas -->
+        <div style="position:relative;">
+          <canvas id="board" style="width:100%; height:640px; border-radius:8px; background:white; touch-action: none;"></canvas>
+          <!-- notes container -->
+          <div id="notesLayer" style="position:absolute; top:12px; left:12px; right:12px; bottom:12px; pointer-events:none"></div>
+        </div>
+      </div>
+
+      <!-- saved snapshots -->
+      <div class="mt-3">
+        <h4 class="font-semibold mb-2">Snapshots</h4>
+        <div id="snapshots" class="flex gap-2 overflow-x-auto"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Basic whiteboard implementation
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let width = canvas.clientWidth, height = 640;
+    canvas.width = Math.floor(width * devicePixelRatio);
+    canvas.height = Math.floor(height * devicePixelRatio);
+    canvas.style.height = height + 'px';
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+
+    // State
+    let drawing = false;
+    let tool = 'pen'; // pen | eraser | line | rect | circle
+    let color = '#111827';
+    let size = 4;
+    let startX = 0, startY = 0;
+    const undoStack = [];
+    const redoStack = [];
+
+    // Helpers
+    const setActiveTool = (t) => {
+      tool = t;
+      document.getElementById('activeTool').innerText = t.charAt(0).toUpperCase() + t.slice(1);
+    };
+    const setColor = (c) => {
+      color = c;
+      document.getElementById('activeColor').style.background = c;
+    };
+    const setSize = (s) => {
+      size = s;
+      document.getElementById('activeSize').innerText = s;
+    };
+
+    // Save snapshot for undo
+    function pushUndo() {
+      try {
+        const data = canvas.toDataURL();
+        undoStack.push(data);
+        if (undoStack.length > 30) undoStack.shift();
+        redoStack.length = 0;
+        renderSnapshots();
+      } catch(e){}
+    }
+
+    function restoreFromDataURL(dataURL){
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
+      };
+      img.src = dataURL;
+    }
+
+    // Setup initial blank snapshot
+    pushUndo();
+
+    // Drawing events
+    function getPos(e){
+      const rect = canvas.getBoundingClientRect();
+      if (e.touches && e.touches[0]) {
+        return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+      }
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function pointerDown(e){
+      e.preventDefault();
+      const p = getPos(e);
+      drawing = true;
+      startX = p.x; startY = p.y;
+      if (tool === 'pen' || tool === 'eraser') {
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+      }
+    }
+
+    function pointerMove(e){
+      if(!drawing) return;
+      const p = getPos(e);
+      if (tool === 'pen') {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      } else if (tool === 'eraser') {
+        ctx.clearRect(p.x - size*1.5, p.y - size*1.5, size*3, size*3);
+      } else {
+        // For shapes we redraw from last snapshot
+        restoreFromDataURL(undoStack[undoStack.length-1]);
+        ctx.strokeStyle = color; ctx.lineWidth = size; ctx.fillStyle = color; ctx.lineCap='round';
+        const w = p.x - startX, h = p.y - startY;
+        if (tool === 'line') {
+          ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(p.x, p.y); ctx.stroke();
+        } else if (tool === 'rect') {
+          ctx.strokeRect(startX, startY, w, h);
+        } else if (tool === 'circle') {
+          ctx.beginPath(); ctx.ellipse(startX + w/2, startY + h/2, Math.abs(w/2), Math.abs(h/2), 0, 0, Math.PI*2); ctx.stroke();
+        }
+      }
+    }
+
+    function pointerUp(e){
+      if(!drawing) return;
+      drawing = false;
+      // finalize shape
+      if (tool === 'pen' || tool === 'eraser') {
+        ctx.closePath();
+      } else {
+        // leave the shape drawn already
+      }
+      pushUndo();
+    }
+
+    // Mouse + touch listeners
+    canvas.addEventListener('mousedown', pointerDown);
+    canvas.addEventListener('mousemove', pointerMove);
+    window.addEventListener('mouseup', pointerUp);
+
+    canvas.addEventListener('touchstart', pointerDown, {passive:false});
+    canvas.addEventListener('touchmove', pointerMove, {passive:false});
+    window.addEventListener('touchend', pointerUp);
+
+    // Tool buttons
+    document.getElementById('penBtn').onclick = () => setActiveTool('pen');
+    document.getElementById('eraserBtn').onclick = () => setActiveTool('eraser');
+    document.getElementById('lineBtn').onclick = () => setActiveTool('line');
+    document.getElementById('rectBtn').onclick = () => setActiveTool('rect');
+    document.getElementById('circleBtn').onclick = () => setActiveTool('circle');
+
+    // color swatches
+    document.querySelectorAll('.color-swatch').forEach(el => {
+      el.addEventListener('click', () => {
+        setColor(el.getAttribute('data-color'));
+        document.getElementById('colorPicker').value = rgbToHex(el.style.backgroundColor);
+      });
+    });
+    document.getElementById('colorPicker').addEventListener('input', (e) => setColor(e.target.value));
+
+    // brush size
+    document.getElementById('sizeRange').addEventListener('input', (e)=> setSize(e.target.value));
+
+    // Undo / Redo / Clear
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      if (undoStack.length > 1) {
+        const top = undoStack.pop();
+        redoStack.push(top);
+        const prev = undoStack[undoStack.length-1];
+        restoreFromDataURL(prev);
+        renderSnapshots();
+      }
+    });
+    document.getElementById('redoBtn').addEventListener('click', () => {
+      if (redoStack.length > 0) {
+        const data = redoStack.pop();
+        restoreFromDataURL(data);
+        undoStack.push(data);
+        renderSnapshots();
+      }
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (!confirm('Clear the board?')) return;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      pushUndo();
+    });
+
+    // Export PNG
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      // combine canvas + notes into a single image
+      const notesLayer = document.getElementById('notesLayer');
+      // temporarily render notes onto a temp canvas
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width; tmp.height = canvas.height;
+      const tctx = tmp.getContext('2d');
+      // draw board
+      tctx.drawImage(canvas, 0, 0, tmp.width / devicePixelRatio, tmp.height / devicePixelRatio);
+      // draw notes (simple)
+      Array.from(notesLayer.children).forEach(node => {
+        const rect = node.getBoundingClientRect();
+        const boardRect = canvas.getBoundingClientRect();
+        const x = (rect.left - boardRect.left);
+        const y = (rect.top - boardRect.top);
+        tctx.fillStyle = '#fff3bf';
+        tctx.fillRect(x * devicePixelRatio, y * devicePixelRatio, rect.width * devicePixelRatio, rect.height * devicePixelRatio);
+        tctx.fillStyle = '#111827';
+        tctx.font = `${14 * devicePixelRatio}px sans-serif`;
+        const lines = node.querySelector('textarea').value.split('\n');
+        lines.forEach((ln,i) => tctx.fillText(ln, (x+8) * devicePixelRatio, (y + 18 + i*18) * devicePixelRatio));
+      });
+      const dataURL = tmp.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = 'whiteboard.png';
+      a.click();
+    });
+
+    // Save / Load board
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const data = { canvas: canvas.toDataURL(), notes: serializeNotes() };
+      localStorage.setItem('whiteboard-data', JSON.stringify(data));
+      alert('Board saved locally.');
+    });
+    document.getElementById('loadBtn').addEventListener('click', () => {
+      const data = JSON.parse(localStorage.getItem('whiteboard-data') || 'null');
+      if (!data) { alert('No saved board found.'); return; }
+      restoreFromDataURL(data.canvas);
+      loadNotesFromData(data.notes);
+    });
+
+    // Sticky notes logic
+    const notesLayer = document.getElementById('notesLayer');
+    document.getElementById('addSticky').addEventListener('click', () => {
+      addSticky({ x: 40 + (notesLayer.children.length*20), y: 40 + (notesLayer.children.length*20), text: '' });
+      pushUndo(); // consider note addition as change for snapshot
+    });
+    document.getElementById('clearNotes').addEventListener('click', ()=> {
+      if (!confirm('Clear all notes?')) return;
+      notesLayer.innerHTML = ''; pushUndo();
+    });
+
+    function addSticky({x=60,y=60,text=''}) {
+      const note = document.createElement('div');
+      note.className = 'sticky';
+      note.style.position = 'absolute';
+      note.style.left = x + 'px';
+      note.style.top = y + 'px';
+      note.style.pointerEvents = 'auto';
+      note.innerHTML = `
+        <div style="display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:6px">
+          <small class="text-xs text-gray-500">Note</small>
+          <div style="display:flex;gap:6px">
+            <button title="Delete" class="small" style="background:transparent;border:0;cursor:pointer">✖</button>
+          </div>
+        </div>
+        <textarea rows="4" placeholder="Write a note...">${text}</textarea>
+      `;
+      // enable dragging of note
+      let offsetX=0, offsetY=0, dragging=false;
+      const header = note.querySelector('small');
+      note.querySelector('button').addEventListener('click', ()=>{
+        note.remove();
+      });
+      note.addEventListener('pointerdown', (ev)=>{
+        dragging=true;
+        offsetX = ev.clientX - note.getBoundingClientRect().left;
+        offsetY = ev.clientY - note.getBoundingClientRect().top;
+        note.setPointerCapture(ev.pointerId);
+      });
+      note.addEventListener('pointermove', (ev)=>{
+        if(!dragging) return;
+        const boardRect = canvas.getBoundingClientRect();
+        let nx = ev.clientX - boardRect.left - offsetX;
+        let ny = ev.clientY - boardRect.top - offsetY;
+        nx = Math.max(0, nx); ny = Math.max(0, ny);
+        note.style.left = nx + 'px'; note.style.top = ny + 'px';
+      });
+      note.addEventListener('pointerup', (ev)=>{
+        dragging=false;
+        pushUndo();
+      });
+      notesLayer.appendChild(note);
+    }
+
+    function serializeNotes(){
+      const arr = [];
+      Array.from(notesLayer.children).forEach(n=>{
+        const ta = n.querySelector('textarea');
+        arr.push({ x: parseFloat(n.style.left), y: parseFloat(n.style.top), text: ta.value });
+      });
+      return arr;
+    }
+
+    function loadNotesFromData(arr){
+      notesLayer.innerHTML = '';
+      (arr || []).forEach(item => addSticky(item));
+    }
+
+    // snapshots display
+    function renderSnapshots(){
+      const container = document.getElementById('snapshots');
+      container.innerHTML = '';
+      undoStack.slice().reverse().forEach((dataURL, idx) => {
+        const img = document.createElement('img');
+        img.src = dataURL;
+        img.style.width = '120px';
+        img.style.height = '80px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '6px';
+        img.style.boxShadow = '0 6px 14px rgba(2,6,23,0.06)';
+        img.style.cursor = 'pointer';
+        img.title = 'Restore snapshot';
+        img.onclick = ()=> {
+          if (confirm('Restore this snapshot?')) {
+            restoreFromDataURL(dataURL);
+            undoStack.push(dataURL);
+            renderSnapshots();
+          }
+        };
+        container.appendChild(img);
+      });
+    }
+
+    // utility: convert "rgb(...)" to hex for inline swatches fallback
+    function rgbToHex(rgb){
+      if (!rgb) return '#000000';
+      const m = rgb.match(/\d+/g);
+      if (!m) return '#000000';
+      return '#' + m.slice(0,3).map(x=> (+x).toString(16).padStart(2,'0') ).join('');
+    }
+
+    // Zoom and fit (simple)
+    let scale = 1;
+    document.getElementById('zoomIn').addEventListener('click', ()=> { scale *= 1.15; canvas.style.transform = `scale(${scale})`; notesLayer.style.transform = `scale(${scale})`; });
+    document.getElementById('zoomOut').addEventListener('click', ()=> { scale /= 1.15; canvas.style.transform = `scale(${scale})`; notesLayer.style.transform = `scale(${scale})`; });
+    document.getElementById('fitBtn').addEventListener('click', ()=> { scale = 1; canvas.style.transform = `scale(${scale})`; notesLayer.style.transform = `scale(${scale})`; });
+
+    // Save initial state load if present
+    (function initLoad(){
+      const data = JSON.parse(localStorage.getItem('whiteboard-data') || 'null');
+      if (data) {
+        restoreFromDataURL(data.canvas);
+        loadNotesFromData(data.notes);
+      }
+      renderSnapshots();
+    })();
+
+    // render size label
+    document.getElementById('sizeRange').dispatchEvent(new Event('input'));
+  </script>
+</body>
+</html>

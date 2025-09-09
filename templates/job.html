@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Tracker - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .dark body { background-color: #1a202c; color: #e2e8f0; }
+    .sidebar { transition: transform 0.3s ease; }
+    .sidebar-hidden { transform: translateX(-100%); }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-gray-800 dark:to-gray-900">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 z-50 shadow-lg">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-tight">Inspiration Hub</h1>
+      <div class="flex items-center space-x-2">
+        <button id="menu-toggle" class="sm:hidden p-2 bg-blue-500 rounded hover:bg-blue-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <div class="hidden sm:flex space-x-2">
+          <button id="theme-toggle" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+          <a href="INSPIRATION.html" class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">Home</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar (Mobile) -->
+  <nav id="sidebar" class="sidebar sidebar-hidden sm:hidden bg-white dark:bg-gray-800 fixed top-0 left-0 w-3/4 h-full z-50 p-4 shadow-lg">
+    <button id="close-sidebar" class="p-2 mb-4 bg-red-500 text-white rounded">Close</button>
+    <div class="space-y-2">
+      <button id="mobile-theme-toggle" class="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+      <a href="INSPIRATION.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Home</a>
+      <a href="study.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Study</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container mx-auto p-4">
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4">Job Application Tracker</h2>
+      <p class="mb-4 text-gray-600 dark:text-gray-300">Add and manage your job applications.</p>
+
+      <!-- Form -->
+      <div class="mb-6 flex flex-col sm:flex-row gap-2">
+        <input id="company" type="text" placeholder="Company Name" class="flex-1 p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <input id="role" type="text" placeholder="Job Role" class="flex-1 p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+        <select id="status" class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+          <option value="Applied">Applied</option>
+          <option value="Interview">Interview</option>
+          <option value="Offer">Offer</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <button onclick="addJob()" class="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600">Add</button>
+      </div>
+
+      <!-- Job List -->
+      <div id="job-list" class="space-y-4"></div>
+    </section>
+  </main>
+
+  <script>
+    let jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderJobs();
+      document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+      document.getElementById("mobile-theme-toggle").addEventListener("click", toggleTheme);
+      document.getElementById("menu-toggle").addEventListener("click", toggleSidebar);
+      document.getElementById("close-sidebar").addEventListener("click", toggleSidebar);
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const buttons = [document.getElementById("theme-toggle"), document.getElementById("mobile-theme-toggle")];
+      buttons.forEach(btn => {
+        if (btn) btn.textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+      });
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("sidebar-hidden");
+    }
+
+    function addJob() {
+      const company = document.getElementById("company").value.trim();
+      const role = document.getElementById("role").value.trim();
+      const status = document.getElementById("status").value;
+
+      if (!company || !role) {
+        alert("Please enter company and role.");
+        return;
+      }
+
+      const job = { id: Date.now(), company, role, status };
+      jobs.push(job);
+      localStorage.setItem("jobs", JSON.stringify(jobs));
+      renderJobs();
+
+      document.getElementById("company").value = "";
+      document.getElementById("role").value = "";
+    }
+
+    function renderJobs() {
+      const list = document.getElementById("job-list");
+      list.innerHTML = "";
+      jobs.forEach(job => {
+        const div = document.createElement("div");
+        div.className = "p-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex justify-between items-center";
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold">${job.company} - ${job.role}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">Status: ${job.status}</p>
+          </div>
+          <button onclick="deleteJob(${job.id})" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteJob(id) {
+      jobs = jobs.filter(job => job.id !== id);
+      localStorage.setItem("jobs", JSON.stringify(jobs));
+      renderJobs();
+    }
+  </script>
+</body>
+</html>

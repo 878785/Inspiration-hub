@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Map Generator - Inspiration Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d1e0ff 100%);
+            transition: background-color 0.3s, color 0.3s;
+            scroll-behavior: smooth;
+        }
+        .dark body {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+        }
+        .node {
+            width: 120px;
+            height: 60px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            cursor: move;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .node:hover {
+            transform: scale(1.05);
+        }
+        canvas {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            width: 100%;
+            height: 500px;
+        }
+        .dark canvas {
+            background: #2d3748;
+            border-color: #4a5568;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 0 auto;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        @media (max-width: 640px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 75%;
+                height: 100%;
+                background-color: white;
+                z-index: 1000;
+                padding: 16px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            }
+            .dark .sidebar {
+                background-color: #2d3748;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">Inspiration Hub</h1>
+            <div class="flex items-center space-x-2">
+                <button id="menu-toggle" class="sm:hidden p-2 bg-blue-500 rounded hover:bg-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <div class="hidden sm:flex space-x-2">
+                    <button id="theme-toggle" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+                    <a href="INSPIRATION.html" class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">Home</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar (Mobile) -->
+    <nav id="sidebar" class="sidebar sidebar-hidden sm:hidden bg-white dark:bg-gray-800">
+        <button id="close-sidebar" class="p-2 mb-4 bg-red-500 text-white rounded">Close</button>
+        <div class="space-y-2">
+            <button id="mobile-theme-toggle" class="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+            <a href="INSPIRATION.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Home</a>
+            <a href="kanban.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Kanban Board</a>
+            <!-- Add links to other tools as needed -->
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <section class="mb-12 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Mind Map Generator</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">Create and connect ideas by dragging nodes or adding new ones.</p>
+            <div id="loading-spinner" class="spinner mb-4"></div>
+            <div class="flex flex-col space-y-4">
+                <div class="flex space-x-2">
+                    <input id="node-text" type="text" placeholder="Enter node text" class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Node Text">
+                    <div class="flex space-x-2 mt-2">
+    <button onclick="removeLastNode()" class="px-4 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition transform hover:scale-105">
+        Remove Last Node
+    </button>
+    <button onclick="clearAllNodes()" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition transform hover:scale-105">
+        Clear All
+    </button>
+</div>
+
+                    <button onclick="addNode()" class="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition transform hover:scale-105" aria-label="Add Node">Add Node</button>
+                </div>
+                <canvas id="mindmap-canvas"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let nodes = JSON.parse(localStorage.getItem('mindmap-nodes') || '[]');
+        let isDragging = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCanvas();
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('mobile-theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('menu-toggle').addEventListener('click', toggleSidebar);
+            document.getElementById('close-sidebar').addEventListener('click', toggleSidebar);
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const buttons = [document.getElementById('theme-toggle'), document.getElementById('mobile-theme-toggle')];
+            buttons.forEach(button => {
+                if (button) button.textContent = document.body.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('sidebar-hidden');
+        }
+
+        function initializeCanvas() {
+            const canvas = document.getElementById('mindmap-canvas');
+            if (!canvas) {
+                showNotification('Canvas not found.', 'bg-red-500');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 500;
+
+            // Render nodes
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                nodes.forEach((node, i) => {
+                    ctx.fillStyle = document.body.classList.contains('dark') ? '#2d3748' : '#fff';
+                    ctx.fillRect(node.x - 60, node.y - 30, 120, 60);
+                    ctx.strokeStyle = '#3b82f6';
+                    ctx.strokeRect(node.x - 60, node.y - 30, 120, 60);
+                    ctx.fillStyle = document.body.classList.contains('dark') ? '#e2e8f0' : '#000';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.text, node.x, node.y);
+                    if (i > 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i-1].x, nodes[i-1].y);
+                        ctx.lineTo(node.x, node.y);
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            // Drag events
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                nodes.forEach((node, i) => {
+                    if (x > node.x - 60 && x < node.x + 60 && y > node.y - 30 && y < node.y + 30) {
+                        isDragging = i;
+                    }
+                });
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging !== null) {
+                    const rect = canvas.getBoundingClientRect();
+                    nodes[isDragging].x = e.clientX - rect.left;
+                    nodes[isDragging].y = e.clientY - rect.top;
+                    render();
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = null;
+                localStorage.setItem('mindmap-nodes', JSON.stringify(nodes));
+            });
+
+            render();
+        }
+
+        function addNode() {
+            const input = document.getElementById('node-text');
+            if (!input) return;
+            const text = sanitizeInput(input.value.trim());
+            if (!text) {
+                showNotification('Please enter node text.', 'bg-red-500');
+                return;
+            }
+            nodes.push({ text, x: 100 + nodes.length * 150, y: 100 });
+            localStorage.setItem('mindmap-nodes', JSON.stringify(nodes));
+            input.value = '';
+            initializeCanvas();
+            showNotification('Node added!', 'bg-green-500');
+        }
+
+        function showNotification(message, bgClass) {
+            const div = document.createElement('div');
+            div.className = `notification ${bgClass} animate-pulse`;
+            div.textContent = sanitizeInput(message);
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function showSpinner(show) {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = show ? 'block' : 'none';
+        }
+
+        function sanitizeInput(input) {
+            if (!input) return '';
+            return String(input).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function removeLastNode() {
+    if (nodes.length > 0) {
+        nodes.pop();
+        localStorage.setItem('mindmap-nodes', JSON.stringify(nodes));
+        initializeCanvas();
+        showNotification('Last node removed!', 'bg-yellow-500');
+    } else {
+        showNotification('No nodes to remove.', 'bg-red-500');
+    }
+}
+
+function clearAllNodes() {
+    if (nodes.length === 0) {
+        showNotification('No nodes to clear.', 'bg-red-500');
+        return;
+    }
+    if (confirm('Are you sure you want to clear all nodes?')) {
+        nodes = [];
+        localStorage.removeItem('mindmap-nodes');
+        initializeCanvas();
+        showNotification('All nodes cleared!', 'bg-red-500');
+    }
+}
+
+    </script>
+</body>
+</html>

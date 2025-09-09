@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kanban Board - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .kanban-column { min-height: 400px; border-radius: 8px; padding: 16px; }
+    .kanban-task {
+      background-color: #e2e8f0;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      cursor: grab;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    .kanban-task:hover { transform: scale(1.02); }
+    .dark .kanban-task { background-color: #4a5568; color: #f9fafb; }
+    .drag-over { border: 2px dashed #3b82f6; }
+    .task-text { flex: 1; margin-right: 10px; }
+    .task-btn { background: none; border: none; cursor: pointer; color: #dc2626; font-weight: bold; }
+    .task-btn:hover { color: #b91c1c; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 shadow-lg">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Inspiration Hub - Kanban</h1>
+      <div class="flex space-x-2">
+        <button id="theme-toggle" class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+        <a href="INSPIRATION.html" class="px-3 py-1 bg-blue-500 rounded hover:bg-blue-600">Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto p-6">
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Kanban Board</h2>
+      <div class="flex space-x-2 mb-4">
+        <input id="task-text" type="text" placeholder="Enter task"
+          class="p-3 border rounded-lg flex-1 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="addTask()" class="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">+ Add</button>
+      </div>
+
+      <!-- Columns -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div id="todo" class="kanban-column bg-gray-100 dark:bg-gray-700" ondragover="allowDrop(event)" ondrop="drop(event, 'todo')">
+          <h3 class="font-semibold mb-2">To Do</h3>
+        </div>
+        <div id="in-progress" class="kanban-column bg-gray-100 dark:bg-gray-700" ondragover="allowDrop(event)" ondrop="drop(event, 'in-progress')">
+          <h3 class="font-semibold mb-2">In Progress</h3>
+        </div>
+        <div id="done" class="kanban-column bg-gray-100 dark:bg-gray-700" ondragover="allowDrop(event)" ondrop="drop(event, 'done')">
+          <h3 class="font-semibold mb-2">Done</h3>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("kanban-tasks") || '{"todo":[],"in-progress":[],"done":[]}');
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTasks();
+      document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const btn = document.getElementById("theme-toggle");
+      btn.textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+    }
+
+    function addTask() {
+      const input = document.getElementById("task-text");
+      const text = sanitizeInput(input.value.trim());
+      if (!text) return alert("Enter a task!");
+      tasks.todo.push({ id: `task-${Date.now()}`, text });
+      saveTasks();
+      input.value = "";
+      loadTasks();
+    }
+
+    function loadTasks() {
+      ["todo", "in-progress", "done"].forEach(col => {
+        const colEl = document.getElementById(col);
+        colEl.innerHTML = `<h3 class="font-semibold mb-2">${col.replace("-", " ").replace(/\b\w/g, c=>c.toUpperCase())}</h3>`;
+        tasks[col].forEach(task => {
+          const div = document.createElement("div");
+          div.className = "kanban-task";
+          div.draggable = true;
+          div.id = task.id;
+          div.innerHTML = `
+            <span class="task-text" ondblclick="editTask('${task.id}')">${task.text}</span>
+            <button class="task-btn" onclick="deleteTask('${task.id}')">&times;</button>
+          `;
+          div.addEventListener("dragstart", dragStart);
+          colEl.appendChild(div);
+        });
+      });
+    }
+
+    function dragStart(event) {
+      event.dataTransfer.setData("text", event.target.id);
+    }
+
+    function allowDrop(event) {
+      event.preventDefault();
+      event.currentTarget.classList.add("drag-over");
+    }
+
+    function drop(event, columnId) {
+      event.preventDefault();
+      const taskId = event.dataTransfer.getData("text");
+      const task = Object.values(tasks).flat().find(t => t.id === taskId);
+      if (!task) return;
+      Object.keys(tasks).forEach(key => {
+        tasks[key] = tasks[key].filter(t => t.id !== taskId);
+      });
+      tasks[columnId].push(task);
+      saveTasks();
+      loadTasks();
+      event.currentTarget.classList.remove("drag-over");
+    }
+
+    function deleteTask(id) {
+      Object.keys(tasks).forEach(key => {
+        tasks[key] = tasks[key].filter(t => t.id !== id);
+      });
+      saveTasks();
+      loadTasks();
+    }
+
+    function editTask(id) {
+      const task = Object.values(tasks).flat().find(t => t.id === id);
+      if (!task) return;
+      const newText = prompt("Edit task:", task.text);
+      if (newText !== null && newText.trim() !== "") {
+        task.text = sanitizeInput(newText.trim());
+        saveTasks();
+        loadTasks();
+      }
+    }
+
+    function saveTasks() {
+      localStorage.setItem("kanban-tasks", JSON.stringify(tasks));
+    }
+
+    function sanitizeInput(input) {
+      return String(input).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[s]));
+    }
+  </script>
+</body>
+</html>

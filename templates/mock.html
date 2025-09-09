@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Interview - Inspiration Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d1e0ff 100%);
+            transition: background-color 0.3s, color 0.3s;
+            scroll-behavior: smooth;
+        }
+        .dark body {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+        }
+        .question-card {
+            background-color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .dark .question-card {
+            background-color: #2d3748;
+        }
+        .question-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .timer {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 12px;
+        }
+        .dark .timer {
+            color: #60a5fa;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 0 auto;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .sidebar {
+            transition: transform 0.3s ease;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        @media (max-width: 640px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 75%;
+                height: 100%;
+                background-color: white;
+                z-index: 1000;
+                padding: 16px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            }
+            .dark .sidebar {
+                background-color: #2d3748;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">Inspiration Hub</h1>
+            <div class="flex items-center space-x-2">
+                <button id="menu-toggle" class="sm:hidden p-2 bg-blue-500 rounded hover:bg-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <div class="hidden sm:flex space-x-2">
+                    <button id="theme-toggle" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+                    <a href="INSPIRATION.html" class="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600">Home</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar (Mobile) -->
+    <nav id="sidebar" class="sidebar sidebar-hidden sm:hidden bg-white dark:bg-gray-800">
+        <button id="close-sidebar" class="p-2 mb-4 bg-red-500 text-white rounded">Close</button>
+        <div class="space-y-2">
+            <button id="mobile-theme-toggle" class="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Dark Mode</button>
+            <a href="INSPIRATION.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Home</a>
+            <a href="mindmap.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Mind Map</a>
+            <a href="kanban.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Kanban Board</a>
+            <a href="job.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Job Search</a>
+            <a href="budget.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Budget Planner</a>
+            <a href="idea.html" class="block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Idea Randomizer</a>
+            <!-- Add other links as needed -->
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4">
+        <section class="mb-12 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Mock Interview</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">Practice for your interview with random questions and a timer.</p>
+            <div id="loading-spinner" class="spinner mb-4"></div>
+            <div class="space-y-4">
+                <div class="timer text-center" id="timer">00:00</div>
+                <button onclick="startTimer()" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition transform hover:scale-105 mr-2" id="start-btn" aria-label="Start Timer">Start</button>
+                <button onclick="stopTimer()" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition transform hover:scale-105" id="stop-btn" aria-label="Stop Timer" disabled>Stop</button>
+                <button onclick="generateQuestion()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition transform hover:scale-105 mt-2" aria-label="Generate Question">New Question</button>
+                <div id="question-container" class="question-card mt-4">
+                    <p class="text-gray-800 dark:text-red-800" id="question">Click "New Question" to start!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let time = 0;
+        let timerInterval = null;
+        let questions = JSON.parse(localStorage.getItem('mock-questions') || '[]');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadQuestion();
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('mobile-theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('menu-toggle').addEventListener('click', toggleSidebar);
+            document.getElementById('close-sidebar').addEventListener('click', toggleSidebar);
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const buttons = [document.getElementById('theme-toggle'), document.getElementById('mobile-theme-toggle')];
+            buttons.forEach(button => {
+                if (button) button.textContent = document.body.classList.contains('dark') ? 'Light Mode' : 'Dark Mode';
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('sidebar-hidden');
+        }
+
+        function startTimer() {
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            if (startBtn && stopBtn) {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                if (!timerInterval) {
+                    timerInterval = setInterval(() => {
+                        time++;
+                        updateTimerDisplay();
+                    }, 1000);
+                }
+            }
+        }
+
+        function stopTimer() {
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            if (startBtn && stopBtn) {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timer = document.getElementById('timer');
+            if (timer) {
+                const minutes = Math.floor(time / 60);
+                const seconds = time % 60;
+                timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        function generateQuestion() {
+            const questionContainer = document.getElementById('question-container');
+            if (!questionContainer) return;
+            showSpinner(true);
+            setTimeout(() => {
+                const questionTemplates = [
+  "Tell me about yourself.",
+  "What are your strengths and weaknesses?",
+  "How do you handle pressure at work?",
+  "Explain a challenging project you worked on.",
+  "Why do you want to work here?",
+  "Describe a time you worked in a team.",
+  "What is your approach to problem-solving?",
+  "How do you prioritize your tasks?",
+  "Where do you see yourself in 5 years?",
+  "Why should we hire you?",
+  "What do you know about our company?",
+  "Tell me about a time you failed and what you learned.",
+  "How do you handle conflicts with colleagues?",
+  "What motivates you to perform well?",
+  "What are your salary expectations?",
+  "How do you manage multiple deadlines?",
+  "What technologies/tools are you most comfortable with?",
+  "Tell me about a time you showed leadership.",
+  "What is your greatest professional achievement?",
+  "What are your career goals?",
+  "How do you stay updated with industry trends?",
+  "What do you enjoy most about your work?",
+  "What do you dislike about your current/previous job?",
+  "What is your biggest strength?",
+  "What is your biggest weakness?",
+  "How do you handle criticism?",
+  "Tell me about a time you improved a process.",
+  "Do you prefer working independently or in a team?",
+  "How do you ensure quality in your work?",
+  "What challenges are you looking for in this position?",
+  "Describe a situation where you solved a difficult problem.",
+  "What values are most important to you at work?",
+  "Tell me about a time you went above and beyond.",
+  "How do you handle repetitive tasks?",
+  "What is your preferred working style?",
+  "How do you adapt to changes in the workplace?",
+  "Tell me about your biggest mistake at work and how you fixed it.",
+  "How do you stay productive when working remotely?",
+  "What will you do in the first 90 days if hired?",
+  "Do you have any questions for us?"
+];
+
+                const randomQuestion = questionTemplates[Math.floor(Math.random() * questionTemplates.length)];
+                questions.push({ id: Date.now(), text: randomQuestion, timestamp: new Date().toLocaleString() });
+                localStorage.setItem('mock-questions', JSON.stringify(questions));
+                loadQuestion();
+                showNotification('New question generated!', 'bg-blue-500');
+                showSpinner(false);
+            }, 500); // Simulate delay
+        }
+
+        function loadQuestion() {
+            const questionContainer = document.getElementById('question-container');
+            if (!questionContainer) return;
+            const lastQuestion = questions.length > 0 ? questions[questions.length - 1].text : "Click 'New Question' to start!";
+            document.getElementById('question').textContent = sanitizeInput(lastQuestion);
+        }
+
+        function showNotification(message, bgClass) {
+            const div = document.createElement('div');
+            div.className = `notification ${bgClass} animate-pulse`;
+            div.textContent = sanitizeInput(message);
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function showSpinner(show) {
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = show ? 'block' : 'none';
+        }
+
+        function sanitizeInput(input) {
+            if (!input) return '';
+            return String(input).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+    </script>
+</body>
+</html>

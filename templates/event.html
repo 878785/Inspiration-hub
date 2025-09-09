@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Event Scheduler - Inspiration Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .event-item {
+      background: #e2e8f0;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .dark .event-item { background: #4a5568; color: #f9fafb; }
+    .btn { padding: 5px 10px; border-radius: 6px; font-size: 14px; }
+    .btn-delete { background: #dc2626; color: white; margin-left: 5px; }
+    .btn-delete:hover { background: #b91c1c; }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-edit:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sticky top-0 shadow-lg">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Inspiration Hub - Event Scheduler</h1>
+      <div class="flex space-x-2">
+        <button id="theme-toggle" class="px-3 py-1 bg-gray-200 text-gray-800 rounded">Dark Mode</button>
+        <a href="INSPIRATION.html" class="px-3 py-1 bg-blue-500 rounded">Home</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto p-6">
+    <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Event Scheduler</h2>
+
+      <!-- Input Form -->
+      <div class="grid sm:grid-cols-2 gap-4 mb-4">
+        <input id="title" type="text" placeholder="Event Title"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+        <input id="date" type="date"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+        <input id="time" type="time"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+        <input id="location" type="text" placeholder="Location"
+          class="p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none">
+      </div>
+      <textarea id="description" placeholder="Description"
+        class="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 focus:outline-none mb-3"></textarea>
+      <button onclick="addEvent()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">+ Add Event</button>
+
+      <!-- Event List -->
+      <div id="event-list" class="mt-6"></div>
+    </section>
+  </main>
+
+  <script>
+    let events = JSON.parse(localStorage.getItem("events") || "[]");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadEvents();
+      document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+    });
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      document.getElementById("theme-toggle").textContent =
+        document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+    }
+
+    function addEvent() {
+      const title = document.getElementById("title").value.trim();
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const location = document.getElementById("location").value.trim();
+      const description = document.getElementById("description").value.trim();
+
+      if (!title || !date || !time) {
+        alert("Please fill at least Title, Date, and Time.");
+        return;
+      }
+
+      events.push({ id: Date.now(), title, date, time, location, description });
+      saveEvents();
+      loadEvents();
+
+      // Clear inputs
+      document.getElementById("title").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("time").value = "";
+      document.getElementById("location").value = "";
+      document.getElementById("description").value = "";
+    }
+
+    function loadEvents() {
+      const list = document.getElementById("event-list");
+      list.innerHTML = "";
+      events.forEach(ev => {
+        const div = document.createElement("div");
+        div.className = "event-item";
+        div.innerHTML = `
+          <div>
+            <h3 class="font-semibold">${ev.title}</h3>
+            <p>${ev.date} at ${ev.time} ${ev.location ? " | " + ev.location : ""}</p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">${ev.description || ""}</p>
+          </div>
+          <div>
+            <button class="btn btn-edit" onclick="editEvent(${ev.id})">Edit</button>
+            <button class="btn btn-delete" onclick="deleteEvent(${ev.id})">Delete</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteEvent(id) {
+      events = events.filter(ev => ev.id !== id);
+      saveEvents();
+      loadEvents();
+    }
+
+    function editEvent(id) {
+      const ev = events.find(e => e.id === id);
+      if (!ev) return;
+
+      const newTitle = prompt("Edit title:", ev.title) || ev.title;
+      const newDate = prompt("Edit date (YYYY-MM-DD):", ev.date) || ev.date;
+      const newTime = prompt("Edit time (HH:MM):", ev.time) || ev.time;
+      const newLocation = prompt("Edit location:", ev.location) || ev.location;
+      const newDesc = prompt("Edit description:", ev.description) || ev.description;
+
+      ev.title = newTitle.trim();
+      ev.date = newDate;
+      ev.time = newTime;
+      ev.location = newLocation.trim();
+      ev.description = newDesc.trim();
+
+      saveEvents();
+      loadEvents();
+    }
+
+    function saveEvents() {
+      localStorage.setItem("events", JSON.stringify(events));
+    }
+  </script>
+</body>
+</html>
