@@ -8,7 +8,7 @@ This project helps users explore technology, design, and innovation in one place
 ## 🚀 Live Demo
 
 👉 Add your live deployment link here (Netlify / Vercel)  
-Example: https://your-username.github.io/Inspiration-Hub/
+live-demo: https://inspiration-hub.onrender.com/
 
 ---
 
